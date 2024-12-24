@@ -59,6 +59,8 @@ iptables -I OUTPUT -o "$vdev" -j ACCEPT
 iptables -I OUTPUT -o lo -j ACCEPT
 iptables -I OUTPUT -d "$dockernet" -j ACCEPT
 iptables -P OUTPUT DROP
+# Accept any packets coming into the tun interface
+iptables -I INPUT -i "$vdev" -j ACCEPT
 
 echo "[+] Firewall rules set to enforce tun interface usage." | tee -a $rlog
 
