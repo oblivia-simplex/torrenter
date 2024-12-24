@@ -13,7 +13,7 @@ function logroute() {
 
 logroute
 
-openvpn --daemon --config /vpn/default.ovpn
+openvpn --daemon --config /vpn/default.ovpn || { echo "[x] Failed to start openvpn"; exit 1; }
 echo "[-] Waiting for openvpn to start..." | tee -a $rlog
 
 while ! ( ip route | grep '^0\.0\.0\.0/1 .*tun'); do
