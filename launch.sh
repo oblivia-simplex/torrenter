@@ -54,24 +54,24 @@ ip route add 0.0.0.0/1 metric 9999 via "$vip" dev "$vdev"
 # That should do it!
 
 # Set up the firewall rules to ensure only the tun interface is used
-iptables -I OUTPUT ! -o "$vdev" -m owner --uid-owner openvpn -j DROP
-iptables -I OUTPUT -o "$vdev" -j ACCEPT
-iptables -I OUTPUT -o lo -j ACCEPT
-iptables -I OUTPUT -d "$dockernet" -j ACCEPT
-iptables -P OUTPUT DROP
+#iptables -I OUTPUT ! -o "$vdev" -m owner --uid-owner openvpn -j DROP
+#iptables -I OUTPUT -o "$vdev" -j ACCEPT
+#iptables -I OUTPUT -o lo -j ACCEPT
+#iptables -I OUTPUT -d "$dockernet" -j ACCEPT
+#iptables -P OUTPUT DROP
 # Accept any packets coming into the tun interface
-iptables -I INPUT -i "$vdev" -j ACCEPT
+#iptables -I INPUT -i "$vdev" -j ACCEPT
 
-echo "[+] Firewall rules set to enforce tun interface usage." | tee -a $rlog
+#echo "[+] Firewall rules set to enforce tun interface usage." | tee -a $rlog
 
-iptables -L -v -n | tee -a $rlog
+#iptables -L -v -n | tee -a $rlog
 
 echo "=======================================" >> $rlog
 
 logroute
 
-echo -e "vip = $vip\nvdev = $vdev\ngip = $gip\ngdev = $gdev" >> $rlog
-
+echo -e "[+] vip = $vip\n[+] vdev = $vdev\n[+] gip = $gip\n[+] gdev = $gdev" | tee -a $rlog
+echo "[=] vip is VPN IP interface, vdev is VPN device" | tee -a $rlog
 echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
 # Start a background watchdog process
@@ -79,6 +79,11 @@ echo "nameserver 8.8.8.8" > /etc/resolv.conf
   while true ; do
     if ! ip route | grep -q "^0\.0\.0\.0/1 .*${vdev}"; then
       echo "Tunnel interface $vdev is down. Exiting." | tee -a $rlog
+      pkill -SIGTERM -P $$ # Terminate all processes in the script's process group
+      exit 1
+    fi
+    if ! pgrep -x openvpn > /dev/null; then
+      echo "OpenVPN is not running. Exiting." | tee -a $rlog
       pkill -SIGTERM -P $$ # Terminate all processes in the script's process group
       exit 1
     fi
