@@ -1,5 +1,8 @@
 #! /usr/bin/env bash
 
+# echo commands
+set -x
+
 export rlog=/logs/route.txt
 :> $rlog
 
