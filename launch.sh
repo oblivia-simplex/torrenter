@@ -11,9 +11,11 @@ function logroute() {
 logroute
 
 openvpn --daemon --config /vpn/default.ovpn
-echo "Waiting for openvpn to start..."
+echo "[-] Waiting for openvpn to start..." | tee -a $rlog
 
 while ! ( ip route | grep '^0\.0\.0\.0/1 .*tun'); do
+        echo "[-] Watching for tun interface..." | tee -a $rlog
+        ip route | tee -a $rlog
 	sleep 1
 done
 
